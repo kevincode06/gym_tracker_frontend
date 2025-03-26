@@ -1,24 +1,24 @@
-import logo from './logo.svg';
+import React from 'react'; // Removed useState
 import './App.css';
+
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import Exercise from './components/Exercise';
+import Gallery from './components/Gallery';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/exercise" element={<Exercise />} />
+          <Route path="/gallery" element={<Gallery />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
