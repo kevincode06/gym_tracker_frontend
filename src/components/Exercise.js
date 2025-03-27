@@ -23,20 +23,18 @@ const Exercise = () => {
   const [availableExercises, setAvailableExercises] = useState([]);
   const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
 
-  // Fetch workouts from backend
   useEffect(() => {
     fetchWorkouts();
   }, []);
 
-  // Update available exercises when category changes
   useEffect(() => {
     setAvailableExercises(category ? exerciseOptions[category] : []);
-    setExercise(''); // Reset exercise when category changes
+    setExercise('');
   }, [category]);
 
   const fetchWorkouts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/workouts');
+      const response = await fetch('https://gym-tracker-backend-nxai.onrender.com/api/workouts');
       if (response.ok) {
         const data = await response.json();
         setWorkouts(data);
@@ -49,7 +47,6 @@ const Exercise = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure that all required fields are provided
     if (!name.trim()) {
       alert("Name is required");
       return;
@@ -75,8 +72,8 @@ const Exercise = () => {
 
     try {
       const url = editWorkoutId 
-        ? `http://localhost:5000/api/workouts/${editWorkoutId}` 
-        : 'http://localhost:5000/api/workouts';
+        ? `https://gym-tracker-backend-nxai.onrender.com/api/workouts/${editWorkoutId}` 
+        : 'https://gym-tracker-backend-nxai.onrender.com/api/workouts';
 
       const method = editWorkoutId ? 'PUT' : 'POST';
 
@@ -87,7 +84,7 @@ const Exercise = () => {
       });
 
       if (response.ok) {
-        await fetchWorkouts();  // Refresh workouts
+        await fetchWorkouts();
         setEditWorkoutId(null);
         resetForm();
       } else {
@@ -115,7 +112,6 @@ const Exercise = () => {
     setName(workout.name);
     setCategory(workout.category);
     
-    // Set available exercises for the selected category
     const categoryExercises = exerciseOptions[workout.category] || [];
     setAvailableExercises(categoryExercises);
     
@@ -128,9 +124,9 @@ const Exercise = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/workouts/${id}`, { method: 'DELETE' });
+      const response = await fetch(`https://gym-tracker-backend-nxai.onrender.com/api/workouts/${id}`, { method: 'DELETE' });
       if (response.ok) {
-        fetchWorkouts(); // Refresh workouts after deletion
+        fetchWorkouts();
       }
     } catch (error) {
       console.error("Error deleting workout:", error);
@@ -237,8 +233,8 @@ const Exercise = () => {
                       </div>
                     </div>
                     <div className="history-actions">
-                      <button onClick={() => handleEdit(workout)}>Edit</button>
-                      <button onClick={() => handleDelete(workout._id)}>Delete</button>
+                      <button onClick={() => handleEdit(workout)} className="edit-button">Edit</button>
+                      <button onClick={() => handleDelete(workout._id)} className="delete-button">Delete</button>
                     </div>
                   </div>
                 ))}
