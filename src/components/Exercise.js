@@ -35,7 +35,6 @@ const Exercise = () => {
       weight: '',
       date: ''
     });
-    setEditWorkoutId(null);
   };
 
   const handleInputChange = (e) => {
@@ -58,7 +57,7 @@ const Exercise = () => {
         exercise: ''
       }));
     }
-  }, [formData.category, editWorkoutId]); // Added editWorkoutId as dependency
+  }, [formData.category, editWorkoutId]);
 
   const fetchWorkouts = async () => {
     try {
@@ -88,9 +87,9 @@ const Exercise = () => {
 
     const workout = { 
       ...formData,
-      reps: Number(formData.reps) || 0, // Convert to number
-      sets: Number(formData.sets) || 0, // Convert to number
-      weight: Number(formData.weight) || 0, // Convert to number
+      reps: Number(formData.reps) || 0,
+      sets: Number(formData.sets) || 0,
+      weight: Number(formData.weight) || 0,
       date: formData.date || new Date().toISOString().split('T')[0]
     };
 
@@ -130,7 +129,7 @@ const Exercise = () => {
       reps: workout.reps.toString(),
       sets: workout.sets.toString(),
       weight: workout.weight.toString(),
-      date: new Date(workout.date).toISOString().split('T')[0] // Format date properly
+      date: new Date(workout.date).toISOString().split('T')[0]
     });
     setEditWorkoutId(workout._id);
   };
@@ -159,7 +158,7 @@ const Exercise = () => {
   };
 
   const formatDate = (isoString) => {
-    return new Date(isoString).toLocaleDateString(); // Better date formatting
+    return new Date(isoString).toLocaleDateString(); 
   };
 
   return (
