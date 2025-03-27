@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Dumbbell, Save, Edit, Trash2 } from 'lucide-react';
 import '../styles/Exercise.css';
 
 const exerciseOptions = {
@@ -21,11 +20,18 @@ const Exercise = () => {
   const [date, setDate] = useState('');
   const [workouts, setWorkouts] = useState([]);
   const [editWorkoutId, setEditWorkoutId] = useState(null);
+  const [availableExercises, setAvailableExercises] = useState([]);
 
   // Fetch workouts from backend
   useEffect(() => {
     fetchWorkouts();
   }, []);
+
+  // Update available exercises when category changes
+  useEffect(() => {
+    setAvailableExercises(category ? exerciseOptions[category] : []);
+    setExercise(''); // Reset exercise when category changes
+  }, [category]);
 
   const fetchWorkouts = async () => {
     try {
@@ -41,6 +47,13 @@ const Exercise = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Make sure that all required fields are provided
+    if (!name || !category || !exercise) {
+      alert("Name, Category, and Exercise are required");
+      return;
+    }
+
     const workout = { name, category, exercise, reps, sets, weight, date };
 
     try {
@@ -57,34 +70,12 @@ const Exercise = () => {
       });
 
       if (response.ok) {
-        await fetchWorkouts(); // Refresh workouts
+        await fetchWorkouts();  // Refresh workouts
         setEditWorkoutId(null);
         resetForm();
       }
     } catch (error) {
       console.error('Error saving workout:', error);
-    }
-  };
-
-  const handleEdit = (workout) => {
-    setEditWorkoutId(workout._id);
-    setName(workout.name);
-    setCategory(workout.category);
-    setExercise(workout.exercise);
-    setReps(workout.reps);
-    setSets(workout.sets);
-    setWeight(workout.weight);
-    setDate(workout.date);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/workouts/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        await fetchWorkouts();
-      }
-    } catch (error) {
-      console.error('Error deleting workout:', error);
     }
   };
 
@@ -98,100 +89,130 @@ const Exercise = () => {
     setDate('');
   };
 
+  const handleEdit = (workout) => {
+    setEditWorkoutId(workout._id);
+    setName(workout.name);
+    setCategory(workout.category);
+    
+    // Set available exercises for the selected category
+    const categoryExercises = exerciseOptions[workout.category] || [];
+    setAvailableExercises(categoryExercises);
+    
+    setExercise(workout.exercise);
+    setReps(workout.reps);
+    setSets(workout.sets);
+    setWeight(workout.weight);
+    setDate(workout.date);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/workouts/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        fetchWorkouts(); // Refresh workouts after deletion
+      }
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+    }
+  };
+
   return (
-    <div className="exercise-container">
-      <div className="exercise-card">
-        <div className="exercise-header">
-          <Dumbbell className="exercise-icon" />
-          <h2>Workout Tracker</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="exercise-form">
-          {/* Name Input */}
-          <div className="form-group">
-            <label>Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-          </div>
-
-          {/* Exercise Category */}
-          <div className="form-group">
-            <label>Exercise Category</label>
-            <select value={category} onChange={(e) => { setCategory(e.target.value); setExercise(''); }} required>
-              <option value="">Select Category</option>
-              {Object.keys(exerciseOptions).map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Exercise Name */}
-          {category && (
-            <div className="form-group">
-              <label>Exercise Name</label>
-              <select value={exercise} onChange={(e) => setExercise(e.target.value)} required>
-                <option value="">Select Exercise</option>
-                {exerciseOptions[category].map(ex => (
-                  <option key={ex} value={ex}>{ex}</option>
+    <div className="exercise-wrapper">
+      <div className="exercise-container">
+        <div className="exercise-content">
+          <h2 className="exercise-title">Workout Tracker</h2>
+          
+          <form onSubmit={handleSubmit} className="exercise-form">
+            <div className="form-row">
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="form-input"
+              />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="form-input"
+              >
+                <option value="">Select Category</option>
+                {Object.keys(exerciseOptions).map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
-          )}
-
-          {/* Workout Details */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>Reps</label>
-              <input type="number" value={reps} onChange={(e) => setReps(e.target.value)} required />
+            <div className="form-row">
+              <select
+                value={exercise}
+                onChange={(e) => setExercise(e.target.value)}
+                className="form-input"
+                disabled={!category}
+              >
+                <option value="">Select Exercise</option>
+                {availableExercises.map(ex => (
+                  <option key={ex} value={ex}>{ex}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                placeholder="Reps"
+                value={reps}
+                onChange={(e) => setReps(e.target.value)}
+                className="form-input"
+              />
             </div>
-            <div className="form-group">
-              <label>Sets</label>
-              <input type="number" value={sets} onChange={(e) => setSets(e.target.value)} required />
+            <div className="form-row">
+              <input
+                type="number"
+                placeholder="Sets"
+                value={sets}
+                onChange={(e) => setSets(e.target.value)}
+                className="form-input"
+              />
+              <input
+                type="number"
+                placeholder="Weight"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="form-input"
+              />
             </div>
-          </div>
+            <div className="form-row">
+              <input
+                type="date"
+                placeholder="Date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="form-input"
+              />
+            </div>
+            
+            <button type="submit" className="submit-button">
+              {editWorkoutId ? 'Update Workout' : 'Save Workout'}
+            </button>
+          </form>
 
-          <div className="form-group">
-            <label>Weight (kg)</label>
-            <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} required />
-          </div>
-
-          <div className="form-group">
-            <label>Date</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-          </div>
-
-          <button type="submit" className="submit-button">
-            <Save className="button-icon" />
-            {editWorkoutId ? "Update Workout" : "Log Workout"}
-          </button>
-        </form>
-
-        {/* Workout History */}
-        {workouts.length > 0 && (
           <div className="workout-history">
             <h3>Workout History</h3>
             <div className="history-list">
               {workouts.map(workout => (
                 <div key={workout._id} className="history-item">
                   <div className="history-details">
-                    <p className="exercise-name">{workout.name} - {workout.exercise}</p>
-                    <p className="exercise-stats">
-                      {workout.sets} sets x {workout.reps} reps @ {workout.weight} kg
-                    </p>
+                    <div className="exercise-name">{workout.name}</div>
+                    <div className="exercise-stats">
+                      {workout.category} | {workout.exercise} | {workout.sets} sets x {workout.reps} reps
+                    </div>
                   </div>
-                  <div className="action-buttons">
-                    <button onClick={() => handleEdit(workout)} className="edit-button">
-                      <Edit size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(workout._id)} className="delete-button">
-                      <Trash2 size={18} />
-                    </button>
+                  <div className="history-actions">
+                    <button onClick={() => handleEdit(workout)}>Edit</button>
+                    <button onClick={() => handleDelete(workout._id)}>Delete</button>
                   </div>
-                  <span className="exercise-date">{workout.date}</span>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
