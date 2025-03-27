@@ -21,6 +21,7 @@ const Exercise = () => {
   const [workouts, setWorkouts] = useState([]);
   const [editWorkoutId, setEditWorkoutId] = useState(null);
   const [availableExercises, setAvailableExercises] = useState([]);
+  const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
 
   // Fetch workouts from backend
   useEffect(() => {
@@ -48,13 +49,29 @@ const Exercise = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Make sure that all required fields are provided
-    if (!name || !category || !exercise) {
-      alert("Name, Category, and Exercise are required");
+    // Ensure that all required fields are provided
+    if (!name.trim()) {
+      alert("Name is required");
+      return;
+    }
+    if (!category) {
+      alert("Please select a category");
+      return;
+    }
+    if (!exercise) {
+      alert("Please select an exercise");
       return;
     }
 
-    const workout = { name, category, exercise, reps, sets, weight, date };
+    const workout = { 
+      name: name.trim(), 
+      category, 
+      exercise, 
+      reps: reps || 0, 
+      sets: sets || 0, 
+      weight: weight || 0, 
+      date: date || new Date().toISOString().split('T')[0] 
+    };
 
     try {
       const url = editWorkoutId 
@@ -73,9 +90,13 @@ const Exercise = () => {
         await fetchWorkouts();  // Refresh workouts
         setEditWorkoutId(null);
         resetForm();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to save workout');
       }
     } catch (error) {
       console.error('Error saving workout:', error);
+      alert('Error saving workout');
     }
   };
 
@@ -114,6 +135,10 @@ const Exercise = () => {
     } catch (error) {
       console.error("Error deleting workout:", error);
     }
+  };
+
+  const toggleWorkoutHistory = () => {
+    setShowWorkoutHistory(!showWorkoutHistory);
   };
 
   return (
@@ -193,25 +218,33 @@ const Exercise = () => {
             </button>
           </form>
 
-          <div className="workout-history">
-            <h3>Workout History</h3>
-            <div className="history-list">
-              {workouts.map(workout => (
-                <div key={workout._id} className="history-item">
-                  <div className="history-details">
-                    <div className="exercise-name">{workout.name}</div>
-                    <div className="exercise-stats">
-                      {workout.category} | {workout.exercise} | {workout.sets} sets x {workout.reps} reps
+          <div className="workout-history-toggle">
+            <button onClick={toggleWorkoutHistory} className="toggle-history-button">
+              {showWorkoutHistory ? 'Hide Workout History' : 'Show Workout History'}
+            </button>
+          </div>
+
+          {showWorkoutHistory && (
+            <div className="workout-history">
+              <h3>Workout History</h3>
+              <div className="history-list">
+                {workouts.map(workout => (
+                  <div key={workout._id} className="history-item">
+                    <div className="history-details">
+                      <div className="exercise-name">{workout.name}</div>
+                      <div className="exercise-stats">
+                        {workout.category} | {workout.exercise} | {workout.sets} sets x {workout.reps} reps
+                      </div>
+                    </div>
+                    <div className="history-actions">
+                      <button onClick={() => handleEdit(workout)}>Edit</button>
+                      <button onClick={() => handleDelete(workout._id)}>Delete</button>
                     </div>
                   </div>
-                  <div className="history-actions">
-                    <button onClick={() => handleEdit(workout)}>Edit</button>
-                    <button onClick={() => handleDelete(workout._id)}>Delete</button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
